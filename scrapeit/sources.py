@@ -40,7 +40,6 @@ def load_sources(path: str | Path = DEFAULT_PATH) -> list[Source]:
                 id=entry["id"],
                 url=entry["url"],
                 sort_urls=entry.get("sort_urls") or {},
-                recipe=entry.get("recipe"),
             )
         )
     return sources

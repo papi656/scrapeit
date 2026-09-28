@@ -15,7 +15,7 @@ from .datamodel import DataModel, load_data_model
 from .fetcher import FetchError, close_page, open_page
 from .models import RunRecord, Source
 from .reader import ReadError
-from .sink import post, write_extracted, write_recipe, write_run_record, write_staging
+from .sink import post, write_extracted, write_run_record, write_staging
 from .sources import load_sources
 
 MODE = "explore"
@@ -59,7 +59,6 @@ def run_source(
         record.turns = result.turns
         record.llm_calls = result.llm_calls
         record.tokens = result.tokens
-        record.recipe_written = str(write_recipe(source, result.recipe) or "") or None
 
         errors: list[str] = list(result.errors)
         if not result.items:
@@ -100,7 +99,7 @@ def run_source(
 
 
 def _read(page, source: Source, count_cap: int):
-    """The scrape stage. Kept as its own function so a replay reader can slot in here."""
+    """The scrape stage, isolated so it can be swapped out."""
     from . import reader as reader_module
 
     return reader_module.read(page, source, count_cap)

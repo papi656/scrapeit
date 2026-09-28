@@ -1,8 +1,11 @@
 """The Reader seam.
 
-`read(page, source, count_cap)` returns Items. v1 has one implementation:
-ExploreReader, an LLM tool-calling loop. RecipeReader (deterministic replay)
-is deferred; the recipe format is fixed now so ExploreReader can emit it.
+`read(page, source, count_cap)` returns Items. One implementation: an LLM
+tool-calling loop that explores the page and extracts the content items.
+
+A deterministic replay path -- learn a page once, re-read it with zero LLM calls --
+was designed and then deliberately removed. See todo.md for the design so it is
+not lost.
 """
 
 from __future__ import annotations
@@ -25,13 +28,12 @@ SEED_TEXT_CHAR_CAP = 1200
 
 
 class ReadError(RuntimeError):
-    """Exploration failed. No items are returned and no recipe is written."""
+    """Exploration failed. No items are returned."""
 
 
 @dataclass
 class ReadResult:
     items: list[Item]
-    recipe: dict[str, Any] | None
     turns: int
     llm_calls: int
     tokens: int
@@ -39,8 +41,6 @@ class ReadResult:
 
 
 class Reader(Protocol):
-    replay: bool
-
     def read(self, page: Page, source: Source, count_cap: int) -> ReadResult: ...
 
 
@@ -52,7 +52,7 @@ The page has already been loaded in a browser. You cannot click or navigate. You
   Use this to test hypotheses about the page structure. Prefer expressions that return
   JSON.stringify(...) of a small, summarised result - never dump the whole DOM.
 - scroll(): scroll down one screen. Budgeted; you cannot scroll much.
-- finish(items, recipe): call this when you have the items. This ends the task.
+- finish(items): call this when you have the items. This ends the task.
 
 TARGET: the feed of content items on this page, most prominent first.
 
@@ -67,33 +67,6 @@ Rules for `items` - each item is an object with these fields:
   extras        (optional) object for anything that does not fit above
 
   Omit a field rather than guessing it. Never invent values.
-
-Rules for `recipe` - how to find these items again WITHOUT an LLM. It must use only
-this vocabulary, mechanically executable:
-
-  {"source_id": str, "version": 1,
-   "steps": [
-     {"op": "load"},
-     {"op": "select_group",
-      "match": {"repeating": true, "each_contains": ["heading", "link"], "min_count": 1}},
-     {"op": "extract", "fields": {"<item field>": {"find": "<finder>"}}},
-     {"op": "paginate", "kind": "none"}
-   ]}
-
-  Allowed finders. Use these EXACT shapes - the argument names are part of the
-  contract and anything else cannot be replayed:
-    {"find": "first_heading"}
-    {"find": "first_link"}
-    {"find": "first_link_href"}
-    {"find": "text_matching", "pattern": "<regex>"}
-    {"find": "attr", "name": "<attribute name>"}
-    {"find": "largest_text_block"}
-    {"find": "nth_text", "index": <integer>}
-
-  Example field entry: "author": {"find": "attr", "name": "author"}
-
-  NEVER use CSS class names or CSS selectors. Class names on modern sites are
-  build-hashed and change on every deploy. Anchor to structure and roles only.
 
 When you are confident, call finish. If you cannot identify the items, still call
 finish with an empty items list and a short explanation in `extras` of the first item.
@@ -142,7 +115,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "finish",
-            "description": "Finish the task with the extracted items and a replay recipe.",
+            "description": "Finish the task with the extracted items.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -163,9 +136,8 @@ TOOLS = [
                             "required": ["title", "url"],
                         },
                     },
-                    "recipe": {"type": "object"},
                 },
-                "required": ["items", "recipe"],
+                "required": ["items"],
             },
         },
     },
@@ -243,7 +215,6 @@ def _run_tool(name: str, args: dict[str, Any], page: Page) -> tuple[str, ReadRes
             )
         result = ReadResult(
             items=items,  # count_cap is applied by the caller
-            recipe=args.get("recipe"),
             turns=0,
             llm_calls=0,
             tokens=0,
@@ -255,7 +226,7 @@ def _run_tool(name: str, args: dict[str, Any], page: Page) -> tuple[str, ReadRes
 
 
 def read(page: Page, source: Source, count_cap: int) -> ReadResult:
-    """Explore `page` and return up to `count_cap` items plus a candidate recipe."""
+    """Explore `page` and return up to `count_cap` items."""
     client = _client()
     model = _model()
 
@@ -317,21 +288,9 @@ def read(page: Page, source: Source, count_cap: int) -> ReadResult:
                 final.llm_calls = llm_calls
                 final.tokens = tokens
                 final.items = final.items[:count_cap]
-                # Spec: a bad recipe is worse than none. Zero items means the
-                # structure was not understood, so any recipe emitted here is
-                # invented. Observed in practice: on about:blank the model
-                # returned 0 items with a confident fabricated recipe.
-                final.recipe = _stamp_recipe(final.recipe, source) if final.items else None
                 return final
 
     raise ReadError(
         f"exploration exceeded {MAX_TURNS} turns for {source.id} "
         f"({llm_calls} llm calls, {tokens} tokens)"
     )
-
-
-def _stamp_recipe(recipe: dict[str, Any] | None, source: Source) -> dict[str, Any] | None:
-    """Attach identity the model does not own."""
-    if not recipe:
-        return None
-    return {**recipe, "source_id": source.id, "version": 1}

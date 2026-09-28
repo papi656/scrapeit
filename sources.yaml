@@ -6,8 +6,6 @@
 #   url        the page to load. It is loaded in YOUR already-logged-in Chrome.
 #   sort_urls  optional map of run-level sort -> concrete URL. If omitted, the
 #              source is treated as a single URL and --sort is ignored.
-#   recipe     optional path to a learned recipe. Written automatically on the
-#              first successful run.
 #
 # `--sort` and `--count` are RUN-LEVEL arguments, not per-source settings.
 

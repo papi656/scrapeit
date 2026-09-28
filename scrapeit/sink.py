@@ -1,4 +1,4 @@
-"""Where scraped content goes -- customization surface #2's counterpart.
+"""Where scraped content goes.
 
 Writes local staging files (a retry buffer: everything needed to re-POST without
 re-scraping), then -- if an endpoint is configured -- POSTs the extracted rows.
@@ -22,7 +22,6 @@ from .models import RunRecord, Source
 from .reader import ReadResult
 
 STAGING_DIR = Path("_staging")
-RECIPE_DIR = Path("recipes")
 RUNS_DIR = Path("runs")
 
 
@@ -35,7 +34,7 @@ def _stamp() -> str:
 
 
 def write_staging(source: Source, sort: str, result: ReadResult) -> Path:
-    """Persist raw items + the candidate recipe for one source run."""
+    """Persist the raw items for one source run."""
     STAGING_DIR.mkdir(parents=True, exist_ok=True)
     path = STAGING_DIR / f"{_slug(source.id)}__{sort}__{_stamp()}.json"
 
@@ -44,7 +43,6 @@ def write_staging(source: Source, sort: str, result: ReadResult) -> Path:
         "source_url": source.url,
         "sort": sort,
         "scraped_at": datetime.now(timezone.utc).isoformat(),
-        "recipe": result.recipe,
         "items": [i.to_dict() for i in result.items],
     }
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
@@ -63,16 +61,6 @@ def write_extracted(source: Source, sort: str, model_name: str, rows: list[dict[
         "items": rows,
     }
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
-    return path
-
-
-def write_recipe(source: Source, recipe: dict | None) -> Path | None:
-    """Persist a learned recipe next to the source. Recipes are meant to be committed."""
-    if not recipe:
-        return None
-    path = RECIPE_DIR / _slug(source.id) / "recipe.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(recipe, indent=2, ensure_ascii=False))
     return path
 
 

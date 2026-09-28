@@ -5,9 +5,9 @@ __pycache__/
 .venv/
 venv/
 
-# Local run buffers — regenerable, never committed.
+# Local run buffers -- regenerable, never committed.
 _staging/
 runs/
 
-# Recipes are NOT ignored. They are the accumulated asset: learn a source once,
-# replay it forever. Commit them.
+# Working notes, not part of the tool.
+todo.md

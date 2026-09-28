@@ -34,7 +34,6 @@ class Source:
     id: str
     url: str
     sort_urls: dict[str, str] = field(default_factory=dict)
-    recipe: str | None = None
 
     def url_for_sort(self, sort: str) -> str:
         """Resolve a run-level sort to a concrete URL.
@@ -72,7 +71,6 @@ class RunRecord:
     extract_tokens: int = 0
     posted: bool = False
     wall_seconds: float = 0.0
-    recipe_written: str | None = None
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
