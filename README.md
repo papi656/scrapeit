@@ -24,6 +24,25 @@ They do genuinely different work and want different models:
 | typical | a cheap fast model | a smarter model |
 | cost | only on the first run per source | once per new item |
 
+## Let a coding agent set it up
+
+Copy the block below into Claude Code, Cursor, Codex, or any other coding agent.
+Replace the `<angle bracket>` parts first. It works because the agent reads
+[`AGENTS.md`](./AGENTS.md), which tells it the three config surfaces, the module
+map, and the rules it must not break.
+
+```text
+Clone https://github.com/papi656/scrapeit and read AGENTS.md and README.md before
+changing anything. Set it up: create .env from .env.example for <my LLM provider,
+model names, and API keys>.
+
+Scrape <the sites I care about> — add each to sources.yaml as id + url, nothing else.
+Rewrite data_model.yaml so the extractor returns <the fields I want>.
+
+Run `uv run python -m scrapeit --count 5 --no-post` to prove scraping works, then show
+me a few extracted rows before we set SINK_ENDPOINT_URL.
+```
+
 ## Install
 
 Requires Python 3.11+, [`uv`](https://docs.astral.sh/uv/) (or pip), and Chrome.
