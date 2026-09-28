@@ -136,9 +136,9 @@ Add `id` + `url` to `sources.yaml` and run it. No per-site code, ever.
 ## Status
 
 Every run explores the page with LLM #1 — nothing is cached or learned yet, so
-run 2 costs the same as run 1. A deterministic replay path (learn a page once,
-re-read it with zero LLM calls) was designed and then removed on purpose; it is
-the main piece of future work.
+run 2 costs the same as run 1. A replay path that would avoid re-exploring a page
+was designed and then removed on purpose; it is **not built**. That is the main
+piece of future work.
 
 ## License
 

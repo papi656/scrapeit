@@ -1,7 +1,7 @@
 [project]
 name = "scrapeit"
 version = "0.1.0"
-description = "Point at a web page, get structured items. Explore once with an LLM, replay with zero LLM calls."
+description = "Point at a web page, get structured items. Explores with one LLM, extracts into your data model with another, then POSTs the result."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

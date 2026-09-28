@@ -3,9 +3,9 @@
 `read(page, source, count_cap)` returns Items. One implementation: an LLM
 tool-calling loop that explores the page and extracts the content items.
 
-A deterministic replay path -- learn a page once, re-read it with zero LLM calls --
-was designed and then deliberately removed. See todo.md for the design so it is
-not lost.
+A deterministic replay path -- learn a page once, re-read it without an LLM --
+was designed and then deliberately removed. It is not built, and run 2 currently
+costs the same as run 1.
 """
 
 from __future__ import annotations
