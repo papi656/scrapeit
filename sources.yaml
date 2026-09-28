@@ -1,0 +1,30 @@
+# Where to mine — customization surface #2.
+#
+# The ONLY required fields are `id` and `url`. Everything else is optional.
+#
+#   id         unique name for this source. Used for filenames, so avoid spaces.
+#   url        the page to load. It is loaded in YOUR already-logged-in Chrome.
+#   sort_urls  optional map of run-level sort -> concrete URL. If omitted, the
+#              source is treated as a single URL and --sort is ignored.
+#   recipe     optional path to a learned recipe. Written automatically on the
+#              first successful run.
+#
+# `--sort` and `--count` are RUN-LEVEL arguments, not per-source settings.
+
+# A source with sort variants. `--sort latest` loads /new/, `--sort hottest` /hot/.
+- id: reddit:r/InterviewCoderHQ
+  url: https://www.reddit.com/r/InterviewCoderHQ/
+  sort_urls:
+    latest: https://www.reddit.com/r/InterviewCoderHQ/new/
+    hottest: https://www.reddit.com/r/InterviewCoderHQ/hot/
+
+- id: prachub:all
+  url: https://prachub.com/
+  sort_urls:
+    latest: https://prachub.com/?sort=new
+    hottest: https://prachub.com/questions
+
+# A plain single-URL source. No sort_urls needed -- --sort is ignored for it.
+# (Commented out so a real run does not try to scrape example.com.)
+# - id: example:blog
+#   url: https://example.com/blog

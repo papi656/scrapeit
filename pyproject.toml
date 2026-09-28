@@ -1,0 +1,32 @@
+[project]
+name = "scrapeit"
+version = "0.1.0"
+description = "Point at a web page, get structured items. Explore once with an LLM, replay with zero LLM calls."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["scraping", "cdp", "browser-harness", "llm", "automation"]
+dependencies = [
+    # Drives the user's already-logged-in Chrome over CDP. Pinned exactly: we use
+    # near-internal APIs (admin.ensure_daemon, the js/new_tab helpers), so a patch
+    # release could change behaviour underneath us.
+    "browser-harness==0.1.6",
+    # Stage 2 (scrape) and stage 3 (extract) both speak the OpenAI-compatible API.
+    "openai>=1.40.0",
+    # sources.yaml + data_model.yaml
+    "pyyaml>=6.0",
+    # .env loading
+    "python-dotenv>=1.0",
+    # The exit path (POST with retry)
+    "httpx>=0.27",
+]
+
+[project.scripts]
+scrapeit = "scrapeit.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scrapeit"]

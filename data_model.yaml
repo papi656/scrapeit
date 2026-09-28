@@ -1,0 +1,45 @@
+# The output data model — customization surface #3.
+#
+# This is what the extraction LLM (LLM_EXTRACT_*) fills in from each scraped item.
+# It is deliberately loose: it is a prompt and a sanity-check, not a database
+# schema. Types are hints to the model, and validation is forgiving.
+#
+# Types: string | int | float | bool | date | enum | list | object
+#   enum  needs `values`
+#   list  may set `of` (the element type, informational)
+
+name: interview_question
+description: One interview question mined from a community post.
+
+fields:
+  - name: question
+    type: string
+    required: true
+    description: The question as asked, verbatim.
+
+  - name: company
+    type: string
+    required: false
+    description: Company named in the post, if any.
+
+  - name: role
+    type: string
+    required: false
+    description: Job role or team the question applies to, if stated.
+
+  - name: role_level
+    type: enum
+    values: [intern, new_grad, mid, senior, staff, unknown]
+    required: false
+    description: Seniority, only if the post states it.
+
+  - name: topics
+    type: list
+    of: string
+    required: false
+    description: Short topic tags, e.g. "system design", "concurrency".
+
+  - name: evidence_url
+    type: string
+    required: false
+    description: Permalink to the source item this came from.
